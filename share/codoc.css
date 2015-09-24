@@ -244,3 +244,13 @@ body { background: #FDFDFD /* url(line-height-20.gif) */; color: #252525; }
 .codoc-doc .field td:nth-child(6) {
     vertical-align: bottom;
 }
+
+/* Border for expanded includes */
+.codoc-doc .include>details[open] {
+    box-shadow: 0 0 0.1rem 0.2rem #FFFFFF;
+    border-radius: 1rem;
+    border-left: 0.2rem solid #A3A3A3;
+    margin-left: -1.5rem;
+    padding-left: 1.3rem;
+    padding-bottom: 0.5rem;
+}
