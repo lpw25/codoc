@@ -25,6 +25,12 @@ val of_module_type :
     CodocDoc.root DocOck.Types.ModuleType.t -> Blueprint.t
 (** Generate a documentation page from a module type. *)
 
+val of_argument :
+  loc:CodocUnit.Href.loc -> CodocEnvironment.t ->
+    CodocDoc.root DocOck.Paths.Identifier.module_
+    * CodocDoc.root DocOck.Types.ModuleType.expr -> Blueprint.t
+(** Generate a documentation page from a module. *)
+
 val of_class :
   loc:CodocUnit.Href.loc -> CodocEnvironment.t ->
     CodocDoc.root DocOck.Types.Class.t -> Blueprint.t

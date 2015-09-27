@@ -122,6 +122,26 @@ let module_type_interface ~scheme ~env ~pkg_root ~unit_loc m =
   in
   (id, uri, html, issues)
 
+let argument_interface ~scheme ~env ~pkg_root ~unit_loc arg =
+  let id, expr = arg in
+  let id = DocOck.Paths.Identifier.any id in
+  let doc_errors = CodocAnalysis.of_argument arg in
+  let issues = issues_of_doc_errors doc_errors in
+  let loc =
+    match CodocUnit.Href.loc ?pkg_root scheme id with
+    | None -> failwith "invariant violation argument_interface" (* TODO: ? *)
+    | Some loc -> loc
+  in
+  let body = CodocDocHtml.of_argument loc env arg in
+  let html = add_up ~loc (BlueTree.of_cons "argument" body) in
+  let html = BlueTree.root html in
+  let uri =
+    match CodocUnit.Href.of_ident unit_loc id with
+    | None -> failwith "invariant violation argument_interface" (* TODO: ? *)
+    | Some uri -> uri
+  in
+  (id, uri, html, issues)
+
 let class_interface ~scheme ~env ~pkg_root ~unit_loc c =
   let id = DocOck.(Paths.Identifier.any c.Types.Class.id) in
   let doc_errors = CodocAnalysis.of_class c in
@@ -193,9 +213,8 @@ let rec render_module ~force ~scheme ~unit_file
       render_signature ~force ~scheme ~unit_file
                        ~pkg_root ~css ~env ~unit_loc sg
     | Some (DocOck.Functor(args, sg)) ->
-      (* TODO render args as well *)
-      render_signature ~force ~scheme ~unit_file
-                       ~pkg_root ~css ~env ~unit_loc sg
+      render_functor ~force ~scheme ~unit_file
+                     ~pkg_root ~css ~env ~unit_loc args sg
   in
   CodocIndex.Module(name, file, issues, children), errs @ child_errs
 
@@ -213,11 +232,29 @@ and render_module_type ~force ~scheme ~unit_file
       render_signature ~force ~scheme ~unit_file
                        ~pkg_root ~css ~env ~unit_loc sg
     | Some (DocOck.Functor(args, sg)) ->
-      (* TODO render args as well *)
-      render_signature ~force ~scheme ~unit_file
-                       ~pkg_root ~css ~env ~unit_loc sg
+      render_functor ~force ~scheme ~unit_file
+                     ~pkg_root ~css ~env ~unit_loc args sg
   in
   CodocIndex.ModuleType(name, file, issues, children), errs @ child_errs
+
+and render_argument ~force ~scheme ~unit_file
+                       ~pkg_root ~css ~env ~unit_loc arg =
+  let intf = argument_interface ~scheme ~env ~pkg_root ~unit_loc arg in
+  let name, file, issues, errs =
+    write_interface ~force ~unit_file ~css intf
+  in
+  let expander = CodocEnvironment.expander env in
+  let children, child_errs =
+    match DocOck.expand_argument expander arg with
+    | None -> [], []
+    | Some (DocOck.Signature sg) ->
+      render_signature ~force ~scheme ~unit_file
+                       ~pkg_root ~css ~env ~unit_loc sg
+    | Some (DocOck.Functor(args, sg)) ->
+      render_functor ~force ~scheme ~unit_file
+                     ~pkg_root ~css ~env ~unit_loc args sg
+  in
+  CodocIndex.Argument(name, file, issues, children), errs @ child_errs
 
 and render_class ~force ~scheme ~unit_file
                  ~pkg_root ~css ~env ~unit_loc c =
@@ -250,6 +287,18 @@ and render_unit ~force ~scheme ~unit_file
                        ~pkg_root ~css ~env ~unit_loc sg
   in
   CodocIndex.Module(name, file, issues, children), errs @ child_errs
+
+and render_functor ~force ~scheme ~unit_file
+                   ~pkg_root ~css ~env ~unit_loc args sg =
+  let args, arg_errs =
+    render_arguments ~force ~scheme ~unit_file
+                     ~pkg_root ~css ~env ~unit_loc args
+  in
+  let sg, sg_errs =
+    render_signature ~force ~scheme ~unit_file
+                     ~pkg_root ~css ~env ~unit_loc sg
+  in
+    args @ sg, arg_errs @ sg_errs
 
 and render_signature ~force ~scheme ~unit_file ~pkg_root ~css ~env ~unit_loc =
   let open DocOck.Types.Signature in function
@@ -307,6 +356,23 @@ and render_signature ~force ~scheme ~unit_file ~pkg_root ~css ~env ~unit_loc =
       render_signature ~force ~scheme ~unit_file
                        ~pkg_root ~css ~env ~unit_loc rest
     | [] -> [], []
+
+and render_arguments ~force ~scheme ~unit_file ~pkg_root ~css ~env ~unit_loc =
+  function
+  | Some arg :: rest ->
+    let arg, errs =
+      render_argument ~force ~scheme ~unit_file
+                      ~pkg_root ~css ~env ~unit_loc arg
+    in
+    let rest, rest_errs =
+      render_arguments ~force ~scheme ~unit_file
+                       ~pkg_root ~css ~env ~unit_loc rest
+    in
+      arg :: rest, errs @ rest_errs
+  | None :: rest ->
+    render_arguments ~force ~scheme ~unit_file
+                     ~pkg_root ~css ~env ~unit_loc rest
+  | [] -> [], []
 
 let read_unit in_file =
   let ic = open_in in_file in

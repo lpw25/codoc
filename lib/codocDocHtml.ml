@@ -1026,18 +1026,10 @@ and of_module_type_expr ~loc env = ModuleType.(BlueTree.(fun sig_ ->
     | Signature s -> of_kv [
       "sig", of_signature ~loc env s;
     ]
-    | Functor (None, expr) ->
+    | Functor (argo, expr) ->
       of_cons "functor" (of_kv [
+        "arg", of_argument_option ~loc env argo;
         "range", of_module_type_expr ~loc env expr;
-      ])
-    | Functor (Some (arg_ident, arg_sig), expr) ->
-      let arg_expr = of_module_type_expr ~loc env arg_sig in
-      let range = of_module_type_expr ~loc env expr in
-      let arg = Identifier.name (Identifier.any arg_ident) in (* TODO: more? *)
-      of_cons "functor" (of_kv [
-        "arg", of_string arg;
-        "arg-type", arg_expr;
-        "range", range;
       ])
     | With (expr, subs) ->
       let base = base_of_module_type_expr expr in
@@ -1180,22 +1172,33 @@ and of_signature ~loc env signature =
     (fold_doc_items (of_signature_item ~loc env) [] signature)
 
 and of_argument ~loc env arg =
-  match arg with
+  let (id, expr) = arg in
+  let short = is_short_module_type_expr expr in
+  let expr = of_module_type_expr ~loc env expr in
+  let id = Identifier.any id in
+  let name = Identifier.name id in
+  let name = BlueTree.(
+    of_list (link_ident ~text:(txt name) ~loc () id)
+  ) in
+  let expansion = BlueTree.(of_lazy_tree (fun () ->
+    let expander = CodocEnvironment.expander env in
+    let expansion = DocOck.expand_argument expander arg in
+    of_module_expansion ~loc env expansion
+  )) in
+  region ~loc ~id BlueTree.(of_kv_maybe [
+    "name", Some name;
+    "expr", Some expr;
+    "short", if short then Some (empty ()) else None;
+    "expansion", Some expansion;
+  ])
+
+and of_argument_option ~loc env argo =
+  match argo with
   | None -> BlueTree.empty ()
-  | Some (id, expr) ->
-      let expr = of_module_type_expr ~loc env expr in
-      let id = Identifier.any id in
-      let name = Identifier.name id in
-      let name = BlueTree.(
-        of_list (link_ident ~text:(txt name) ~loc () id)
-      ) in
-      region ~loc ~id BlueTree.(of_kv_maybe [
-        "name", Some name;
-        "expr", Some expr;
-      ])
+  | Some arg -> of_argument ~loc env arg
 
 and of_functor ~loc env args signature =
-  let args = List.map (of_argument ~loc env) args in
+  let args = List.map (of_argument_option ~loc env) args in
   let range = of_signature ~loc env signature in
   BlueTree.(of_kv [
     "args", of_list args;

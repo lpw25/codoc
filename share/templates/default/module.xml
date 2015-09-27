@@ -22,24 +22,25 @@
     </div>
   </t:let>
 
-  <t:let name="module.short-decl"
-    ><t:if exists=".type"
-      ><t:insert name="module-type.short-expr" with=".type"/></t:if
-    ><t:if exists=".alias"
-      ><t:insert name="nav.path" with=".alias.path"/></t:if
-    ></t:let>
-
-  <t:let name="module.short-args"
-    ><t:if exists=".type"
-      ><t:insert name="module-type.short-args" with=".type"
-    /></t:if></t:let>
-
-  <t:let name="module.short-body"
-    ><t:if exists=".type"
-      > : <t:insert name="module-type.short-body" with=".type"/></t:if
-    ><t:if exists=".alias"
-      > = <t:insert name="nav.path" with=".alias.path"/></t:if
-    ></t:let>
+  <t:let name="argument">
+    <div class="mod codoc-doc">
+      <t:insert name="nav.up" with=".up"><t:seq/></t:insert>
+      <div class="intro">
+        <h1>
+          <t:let name="keyword.text">Argument</t:let
+          ><t:insert name="keyword"
+          /> <t:insert name="nav.title-ref-link" with=".name"
+          /><t:insert name="module-type.short-args" with=".expr"
+          /><t:if exists=".short"
+            > : <t:insert name="module-type.short-body" with=".expr"
+          /></t:if>
+        </h1>
+        <t:insert name="doc.div" with=".doc"/>
+      </div>
+      <t:insert name="module-type.module-expansion" with=".expansion">
+        <t:seq/></t:insert>
+    </div>
+  </t:let>
 
   <t:let name="module-type">
     <div class="modt codoc-doc">
@@ -60,6 +61,25 @@
     </div>
   </t:let>
 
+  <t:let name="module.short-decl"
+    ><t:if exists=".type"
+      ><t:insert name="module-type.short-expr" with=".type"/></t:if
+    ><t:if exists=".alias"
+      ><t:insert name="nav.path" with=".alias.path"/></t:if
+    ></t:let>
+
+  <t:let name="module.short-args"
+    ><t:if exists=".type"
+      ><t:insert name="module-type.short-args" with=".type"
+    /></t:if></t:let>
+
+  <t:let name="module.short-body"
+    ><t:if exists=".type"
+      > : <t:insert name="module-type.short-body" with=".type"/></t:if
+    ><t:if exists=".alias"
+      > = <t:insert name="nav.path" with=".alias.path"/></t:if
+    ></t:let>
+
   <t:let name="module-type.short-expr"
     ><t:if exists=".path"
       ><t:insert name="nav.path" with=".path"/></t:if
@@ -75,9 +95,10 @@
 
   <t:let name="module-type.short-args"
     ><t:if exists=".functor"
-      ><t:if exists=".functor.arg"
-        > (<t:insert name=".functor.arg"
-        /> : <t:insert name="module-type.short-expr" with=".functor.arg-type"
+      ><t:if exists=".functor.arg.name"
+        > (<t:insert name=".functor.arg.name"
+        ><t:insert name="nav.ref-link" with=".functor.arg.name"
+        /></t:insert> : <t:insert name="module-type.short-expr" with=".functor.arg.expr"
         />)</t:if
       ><t:else> ()</t:else
       ><t:insert name="module-type.short-args" with=".functor.range"

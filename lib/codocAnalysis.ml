@@ -411,6 +411,12 @@ let of_module_type x =
   ignore (obj#module_type x);
   obj#issues
 
+let of_argument (id, expr) =
+  let obj = new index in
+  ignore (obj#identifier_module id);
+  ignore (obj#module_type_expr expr);
+  obj#issues
+
 let of_unit x =
   let obj = new index in
   ignore (obj#unit x);

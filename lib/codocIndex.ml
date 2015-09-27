@@ -31,6 +31,7 @@ type html_file =
   | ClassType of string * string * generation_issue list
   | Module of string * string * generation_issue list * html_file list
   | ModuleType of string * string * generation_issue list * html_file list
+  | Argument of string * string * generation_issue list * html_file list
 
 type generated_unit = {
   name        : string;
@@ -65,6 +66,7 @@ let html_file_name = function
   | ClassType(name, _, _) -> name
   | Module(name, _, _, _) -> name
   | ModuleType(name, _, _, _) -> name
+  | Argument(name, _, _, _) -> name
 
 let error_message_of_issue path = function
   | Template_error message ->
@@ -102,6 +104,9 @@ let rec print_html_file_issues = function
       print_issues path issues;
       List.iter print_html_file_issues children
   | ModuleType(name, path, issues, children) ->
+      print_issues path issues;
+      List.iter print_html_file_issues children
+  | Argument(name, path, issues, children) ->
       print_issues path issues;
       List.iter print_html_file_issues children
 
@@ -162,6 +167,12 @@ let rec fold_xml_of_html_file acc = function
   | ModuleType (name, file, issues, children)::rest ->
     let acc =
       xml_of_html_file acc "module-type"
+        name file issues (fold_xml_of_html_file [] children)
+    in
+    fold_xml_of_html_file acc rest
+  | Argument (name, file, issues, children)::rest ->
+    let acc =
+      xml_of_html_file acc "argument"
         name file issues (fold_xml_of_html_file [] children)
     in
     fold_xml_of_html_file acc rest
@@ -315,6 +326,12 @@ and fold_html_file_of_xml xml acc =
     let file, issues, children = html_file_of_xml xml in
     must_end xml;
     let acc = ModuleType (name, file, issues, children) :: acc in
+    fold_html_file_of_xml xml acc
+  | `El_start ((ns,"argument"),[("","name"),name]) when ns = xmlns ->
+    eat xml;
+    let file, issues, children = html_file_of_xml xml in
+    must_end xml;
+    let acc = Argument (name, file, issues, children) :: acc in
     fold_html_file_of_xml xml acc
   | `El_start _ | `El_end -> acc
   | `Dtd _ | `Data _ -> eat xml; fold_html_file_of_xml xml acc

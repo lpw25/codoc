@@ -138,6 +138,13 @@ and destruct_html_file ~uri_of_path ~normal_uri scheme base =
           (sort_html_files children)
       in
       "module-type", name, href, issues, children
+    | Argument (name, href, issues, children) ->
+      let children =
+        List.map
+          (of_html_file ~uri_of_path ~normal_uri scheme base)
+          (sort_html_files children)
+      in
+      "argument", name, href, issues, children
   ))
 
 let of_package ~name ~index ~scheme =
