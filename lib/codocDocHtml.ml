@@ -265,6 +265,16 @@ let region ~loc ?id html =
     "href", href;
   ]))
 
+let contains_inline = Documentation.(function
+  | Ok { tags } ->
+    List.exists
+      (function
+        | Inline -> true
+        | _ -> false)
+      tags
+  | Error _ -> false
+)
+
 let label_region ~loc label_opt html = match label_opt with
   | None -> BlueTree.of_cons "body" html
   | Some label -> region ~loc ~id:(Identifier.any label) html
@@ -491,6 +501,8 @@ let map_tag ~loc tag =
     make_tag ~rest "raises" (of_text_elements t)
   | Return t ->
     make_tag "return" (of_text_elements t)
+  | Inline ->
+    make_tag "inline" [BlueTree.empty ()]
   | Tag (s, t) ->
     let rest = [ "tag", make_tag s [] ] in
     make_tag ~rest "custom" (of_text_elements t)
@@ -1127,8 +1139,9 @@ and of_module_type ~loc env module_type =
   ])
 
 and of_include ~loc env incl =
-  let { Include.decl } = incl in
+  let { Include.doc; decl } = incl in
   let short = is_short_module_decl decl in
+  let inline = contains_inline doc in
   let decl = of_module_decl ~loc env decl in
   let expansion = BlueTree.(of_lazy_tree (fun () ->
     let expander = CodocEnvironment.expander env in
@@ -1137,6 +1150,7 @@ and of_include ~loc env incl =
   )) in
   region ~loc BlueTree.(of_kv_maybe [
     "decl", Some decl;
+    "inline", if inline then Some (empty ()) else None;
     "short", if short then Some (empty ()) else None;
     "expansion", Some expansion;
   ])

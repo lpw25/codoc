@@ -472,36 +472,42 @@
   </t:let>
 
   <t:let name="signature.include">
-    <t:if exists=".short">
-      <t:if exists=".expansion.sig.head">
-        <div class="region">
-          <div class="include">
-            <details>
-              <summary>
-                <span class="def">
-                  <t:let name="keyword.text">include</t:let
-                  ><t:insert name="keyword"
-                  /> <t:insert name="module.short-decl" with=".decl"/>
-                </span>
-              </summary>
-              <t:insert name="signature" with=".expansion.sig"/>
-            </details>
-          </div>
-        </div>
-      </t:if><t:else>
-        <div class="region">
-          <div class="include">
-            <div class="def">
-              <t:let name="keyword.text">include</t:let><t:insert name="keyword"/>
-              <t:insert name="module.short-decl" with=".decl"/>
-            </div>
-          </div>
-        </div>
-      </t:else>
-    </t:if><t:else>
+    <t:if exists=".inline">
       <t:if exists=".expansion.sig.head">
         <t:insert name="signature" with=".expansion.sig"/>
       </t:if>
+    </t:if><t:else>
+      <t:if exists=".short">
+        <t:if exists=".expansion.sig.head">
+          <div class="region">
+            <div class="include">
+              <details>
+                <summary>
+                  <span class="def">
+                    <t:let name="keyword.text">include</t:let
+                    ><t:insert name="keyword"
+                    /> <t:insert name="module.short-decl" with=".decl"/>
+                  </span>
+                </summary>
+                <t:insert name="signature" with=".expansion.sig"/>
+              </details>
+            </div>
+          </div>
+        </t:if><t:else>
+          <div class="region">
+            <div class="include">
+              <div class="def">
+                <t:let name="keyword.text">include</t:let><t:insert name="keyword"/>
+                <t:insert name="module.short-decl" with=".decl"/>
+              </div>
+            </div>
+          </div>
+        </t:else>
+      </t:if><t:else>
+        <t:if exists=".expansion.sig.head">
+          <t:insert name="signature" with=".expansion.sig"/>
+        </t:if>
+      </t:else>
     </t:else>
   </t:let>
 

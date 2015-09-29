@@ -332,6 +332,7 @@ class ['a] index = object (self)
     | Raise(_, _) -> tag
     | Return txt ->
       self#with_tag "return" (fun () -> self#documentation_text txt); tag
+    | Inline -> tag
     | Tag("", _) -> self#empty_tag "custom"; tag
     | Tag(_, _) -> tag
 
