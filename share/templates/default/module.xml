@@ -27,7 +27,7 @@
       <t:insert name="nav.up" with=".up"><t:seq/></t:insert>
       <div class="intro">
         <h1>
-          <t:let name="keyword.text">Argument</t:let
+          <t:let name="keyword.text">Parameter</t:let
           ><t:insert name="keyword"
           /> <t:insert name="nav.title-ref-link" with=".name"
           /><t:insert name="module-type.short-args" with=".expr"
@@ -35,7 +35,6 @@
             > : <t:insert name="module-type.short-body" with=".expr"
           /></t:if>
         </h1>
-        <t:insert name="doc.div" with=".doc"/>
       </div>
       <t:insert name="module-type.module-expansion" with=".expansion">
         <t:seq/></t:insert>
@@ -50,9 +49,8 @@
           <t:let name="keyword.text">Module type</t:let
           ><t:insert name="keyword"
           /> <t:insert name="nav.title-ref-link" with=".name"
-          /><t:insert name="module-type.short-args" with=".expr"
           /><t:if exists=".short"
-            > = <t:insert name="module-type.short-body" with=".expr"
+            > = <t:insert name="module-type.short-expr" with=".expr"
           /></t:if>
         </h1>
         <t:insert name="doc.div" with=".doc"/>
@@ -95,10 +93,10 @@
 
   <t:let name="module-type.short-args"
     ><t:if exists=".functor"
-      ><t:if exists=".functor.arg.name"
-        > (<t:insert name=".functor.arg.name"
-        ><t:insert name="nav.ref-link" with=".functor.arg.name"
-        /></t:insert> : <t:insert name="module-type.short-expr" with=".functor.arg.expr"
+      ><t:if exists=".functor.arg.body"
+        > (<t:insert name=".functor.arg.body.name"
+        ><t:insert name="nav.path" with=".functor.arg.body.name"
+        /></t:insert> : <t:insert name="module-type.short-expr" with=".functor.arg.body.expr"
         />)</t:if
       ><t:else> ()</t:else
       ><t:insert name="module-type.short-args" with=".functor.range"
@@ -127,9 +125,11 @@
 
   <t:let name="module-type.short-functor"
     ><t:let name="keyword.text">functor</t:let><t:insert name="keyword"
-    /><t:if exists=".arg"
-    > (<t:insert name=".arg"
-    /> : <t:insert name="module-type.short-expr" with=".arg-type"
+    /><t:if exists=".arg.body"
+      > (<t:insert name=".arg.body.name"
+      ><t:insert name="nav.path" with=".arg.body.name"
+       /></t:insert
+       > : <t:insert name="module-type.short-expr" with=".arg.body.expr"
     />)</t:if
     ><t:else>()</t:else
     > -> <t:insert name="module-type.short-expr" with=".range"
@@ -193,6 +193,7 @@
   <t:let name="module-type.module-expansion"
     ><t:if exists=".sig"
       ><t:if exists=".sig.head">
+        <h3 class="heading">Signature</h3>
         <div class="sig">
           <t:insert name="signature" with=".sig"/>
         </div>
@@ -460,8 +461,7 @@
           <t:insert name=".name"
           ><t:insert name="nav.ref-link" with=".name"/></t:insert>
           <t:if exists=".expr"
-            ><t:insert name="module-type.short-args" with=".expr"
-            /> = <t:insert name="module-type.short-body" with=".expr"
+            > = <t:insert name="module-type.short-expr" with=".expr"
           /></t:if>
         </div>
       </div>
@@ -505,25 +505,40 @@
     </t:else>
   </t:let>
 
-  <t:let name="functor"
-    ><t:let name="keyword.text">functor</t:let><t:insert name="keyword"
-    /> <t:insert name="functor.arguments" with=".args"
-    /> -> <t:if exists=".sig.head">
+  <t:let name="functor">
+    <h3 class="heading">Parameters</h3>
+    <div class="parameters">
+      <t:insert name="functor.arguments" with=".args"/>
+    </div>
+    <t:if exists=".range.head">
+      <h3 class="heading">Signature</h3>
       <div class="sig">
         <t:insert name="signature" with=".range"/>
       </div>
     </t:if></t:let>
 
   <t:let name="functor.arguments"
-    ><t:insert name="functor.argument" with=".head"
-    /><t:insert name="functor.arguments" with=".tail"><t:seq/></t:insert
+    ><t:if exists=".head.body"
+      ><t:link from="nav.region.render" to="functor.argument"
+      /><t:insert name="nav.region" with=".head"
+    /></t:if
+    ><t:insert name="functor.arguments" with=".tail"><t:seq/></t:insert
     ></t:let>
 
-  <t:let name="functor.argument"
-    ><t:if exists=".name"
-      > (<t:insert name=".arg"
-      /> : <t:insert name="module-type.short-expr" with=".arg-type"
-      />)</t:if
-    ><t:else> ()</t:else></t:let>
+  <t:let name="functor.argument">
+      <div class="moda">
+        <div class="def">
+          <div class="intro">
+            <t:insert name=".name"
+            ><t:insert name="nav.ref-link" with=".name"/></t:insert
+            ><t:insert name="module-type.short-args" with=".expr"
+            /> : <t:insert name="module-type.short-body" with=".expr"/>
+          </div>
+        </div>
+        <t:if exists=".doc.descr.head">
+          <t:insert name="doc.mktext" with=".doc.descr"><t:seq/></t:insert>
+        </t:if>
+      </div>
+    </t:let>
 
 </t:seq>

@@ -203,8 +203,23 @@ body { background: #FDFDFD /* url(line-height-20.gif) */; color: #252525; }
     margin-left: -1em;
 }
 
+.codoc-doc .heading {
+    margin-top: 0.625rem;
+    border-top: solid;
+    border-width: 1px;
+    border-color: #DDDDDD;
+    text-align: right;
+    font-weight: normal;
+    font-style: italic;
+}
+.codoc-doc .heading + .sig {
+    margin-top: -1.25rem;
+}
+.codoc-doc .heading + .parameters {
+    margin-top: -1.25rem;
+}
+
 .codoc-doc .keyword { font-weight: bold;}
-.codoc-doc .sig { }
 .codoc-doc .tag.deprecated { color: orange; }
 .codoc-doc .tag.deprecated .label { color: red; }
 .codoc-doc .mod,
